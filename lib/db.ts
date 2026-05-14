@@ -168,6 +168,11 @@ export async function savePinnedChart(input: PinnedChart) {
   );
 }
 
+export async function clearPinnedChart() {
+  await ensureSchema();
+  await query("DELETE FROM app_settings WHERE key = 'pinned_chart'");
+}
+
 export async function listExpenses() {
   await ensureSchema();
   const result = await query<Expense>(`

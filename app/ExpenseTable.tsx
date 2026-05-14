@@ -122,6 +122,8 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [addFormQty, setAddFormQty] = useState("");
+  const [addFormCommission, setAddFormCommission] = useState("");
 
   const visibleRows = useMemo(() => rows.filter((expense) => expense.expense_date >= startDate), [rows, startDate]);
   const visibleIds = useMemo(() => new Set(visibleRows.map((expense) => expense.id)), [visibleRows]);
@@ -143,6 +145,26 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
   useEffect(() => {
     setSelectedIds((currentIds) => currentIds.filter((id) => visibleIds.has(id)));
   }, [visibleIds]);
+
+  useEffect(() => {
+    if (!showAddModal) {
+      setAddFormQty("");
+      setAddFormCommission("");
+    }
+  }, [showAddModal]);
+
+  const addAmountPreview = useMemo(() => {
+    const qtyRaw = addFormQty.trim();
+    const commissionRaw = addFormCommission.trim();
+    if (!qtyRaw || !commissionRaw) return null;
+
+    const quantity = Number(qtyRaw);
+    const commissionRate = Number(commissionRaw);
+    if (!Number.isFinite(quantity) || !Number.isFinite(commissionRate)) return null;
+
+    return { quantity, commissionRate, amount: quantity * commissionRate };
+  }, [addFormQty, addFormCommission]);
+
   const totals = useMemo(() => {
     const today = new Date();
     const todayKey = dateKey(today);
@@ -489,11 +511,39 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
                       </div>
                       <div className="col-6">
                         <label className="form-label fw-semibold">Qty</label>
-                        <input className="form-control" name="qty" inputMode="decimal" placeholder="0" required />
+                        <input
+                          className="form-control"
+                          name="qty"
+                          value={addFormQty}
+                          onChange={(event) => setAddFormQty(event.target.value)}
+                          inputMode="decimal"
+                          placeholder="0"
+                          required
+                        />
                       </div>
                       <div className="col-6">
                         <label className="form-label fw-semibold">Commission</label>
-                        <input className="form-control" name="commission" inputMode="decimal" placeholder="0" required />
+                        <input
+                          className="form-control"
+                          name="commission"
+                          value={addFormCommission}
+                          onChange={(event) => setAddFormCommission(event.target.value)}
+                          inputMode="decimal"
+                          placeholder="0"
+                          required
+                        />
+                      </div>
+                      <div className="col-12">
+                        <label className="form-label fw-semibold">Amount</label>
+                        <div className="rounded-3 border bg-light px-3 py-2" aria-live="polite">
+                          {addAmountPreview ? (
+                            <span className="fw-semibold">
+                              {money(addAmountPreview.quantity)} × {money(addAmountPreview.commissionRate)} = {money(addAmountPreview.amount)}
+                            </span>
+                          ) : (
+                            <span className="text-secondary small">Shows qty × commission once both values are entered</span>
+                          )}
+                        </div>
                       </div>
                       <div className="col-12">
                         <label className="form-label fw-semibold">Party</label>

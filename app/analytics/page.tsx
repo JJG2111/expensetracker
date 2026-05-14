@@ -1,4 +1,4 @@
-import { analyticsTotal, availableYears, distribution, partyMonthlyOrders } from "../../lib/db";
+import { analyticsTotal, availableYears, distribution, getPinnedChart, partyMonthlyOrders } from "../../lib/db";
 import { money, months } from "../../lib/constants";
 import { DatabaseSetupCard, hasDatabaseUrl } from "../../lib/setup";
 import { requireAuth } from "../../lib/auth";
@@ -29,6 +29,14 @@ export default async function Analytics({
   const productRows = await distribution("product_name", selectedYear, selectedMonths);
   const monthlyPartyRows = chart === "histogram" || chart === "line" ? await partyMonthlyOrders(selectedYear, selectedMonths) : [];
   const total = await analyticsTotal(selectedYear, selectedMonths);
+  const pinned = await getPinnedChart();
+  const returnParams = new URLSearchParams();
+  returnParams.set("year", selectedYear);
+  returnParams.set("chart", chart);
+  for (const month of selectedMonths) {
+    returnParams.append("month", month);
+  }
+  const analyticsReturnTo = `/analytics?${returnParams.toString()}`;
 
   return (
     <>
@@ -81,16 +89,27 @@ export default async function Analytics({
         </div>
       </section>
 
-      <form className="d-flex justify-content-end mb-3" method="post" action="/api/pinned-chart">
-        <input type="hidden" name="year" value={selectedYear} />
-        <input type="hidden" name="chart" value={chart} />
-        {selectedMonths.map((month) => (
-          <input key={month} type="hidden" name="month" value={month} />
-        ))}
-        <button className="btn btn-outline-primary" type="submit">
-          Pin this chart to Home
-        </button>
-      </form>
+      <div className="d-flex flex-column flex-sm-row flex-wrap gap-2 justify-content-sm-end mb-3">
+        <form className="d-flex" method="post" action="/api/pinned-chart">
+          <input type="hidden" name="year" value={selectedYear} />
+          <input type="hidden" name="chart" value={chart} />
+          {selectedMonths.map((month) => (
+            <input key={month} type="hidden" name="month" value={month} />
+          ))}
+          <button className="btn btn-outline-primary" type="submit">
+            Pin this chart to Home
+          </button>
+        </form>
+        {pinned ? (
+          <form className="d-flex" method="post" action="/api/pinned-chart">
+            <input type="hidden" name="intent" value="clear" />
+            <input type="hidden" name="return_to" value={analyticsReturnTo} />
+            <button className="btn btn-outline-danger" type="submit">
+              Remove pinned chart from Home
+            </button>
+          </form>
+        ) : null}
+      </div>
 
       {chart === "histogram" ? (
         <PartyMonthlyHistogram rows={monthlyPartyRows} selectedMonths={selectedMonths} />
