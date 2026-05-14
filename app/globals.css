@@ -1,0 +1,291 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f6f7fb;
+  color: #1f2937;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+header {
+  background: #111827;
+  color: white;
+  padding: 0 36px 28px;
+}
+
+nav {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1120px;
+  padding: 18px 0;
+}
+
+nav a {
+  color: #d1d5db;
+  font-weight: 700;
+  margin-left: 18px;
+  text-decoration: none;
+}
+
+nav a:hover {
+  color: white;
+}
+
+.nav-button {
+  background: transparent;
+  border: 0;
+  color: #d1d5db;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  margin: 0 0 0 18px;
+  padding: 0;
+}
+
+.nav-button:hover {
+  color: white;
+}
+
+.brand {
+  color: white;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.hero,
+main {
+  margin: 0 auto;
+  max-width: 1120px;
+}
+
+main {
+  padding: 28px;
+}
+
+h1,
+h2 {
+  margin: 0 0 14px;
+}
+
+header p,
+.muted {
+  color: #d1d5db;
+  margin: 6px 0 0;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.card,
+.metric {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
+  padding: 22px;
+}
+
+label {
+  display: block;
+  font-weight: 650;
+  margin: 12px 0 6px;
+}
+
+input,
+select {
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  font: inherit;
+  padding: 10px 11px;
+  width: 100%;
+}
+
+select[multiple] {
+  min-height: 160px;
+}
+
+button,
+.button {
+  background: #2563eb;
+  border: 0;
+  border-radius: 9px;
+  color: white;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 700;
+  margin-top: 16px;
+  padding: 11px 15px;
+  text-decoration: none;
+}
+
+table {
+  background: white;
+  border-collapse: collapse;
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  width: 100%;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px;
+  text-align: left;
+}
+
+th {
+  background: #f9fafb;
+  color: #4b5563;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.num {
+  text-align: right;
+}
+
+.summary,
+.filters,
+.report-controls {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 24px 0 12px;
+}
+
+.report-controls > div,
+.filters > div {
+  min-width: 180px;
+}
+
+.metric-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: 22px;
+}
+
+.metric strong {
+  display: block;
+  font-size: 26px;
+  margin-top: 4px;
+}
+
+.bar-track {
+  background: #e5e7eb;
+  border-radius: 999px;
+  height: 11px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  background: #2563eb;
+  height: 100%;
+}
+
+.chart-grid {
+  align-items: center;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(220px, 340px) 1fr;
+}
+
+.pie-chart {
+  background: conic-gradient(var(--segments, #e5e7eb 0 100%));
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px #e5e7eb;
+  height: 260px;
+  margin: 0 auto;
+  width: 260px;
+}
+
+.legend {
+  display: grid;
+  gap: 10px;
+}
+
+.legend-item {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 16px 1fr auto;
+}
+
+.swatch {
+  border-radius: 4px;
+  height: 14px;
+  width: 14px;
+}
+
+.empty {
+  color: #6b7280;
+  padding: 28px;
+  text-align: center;
+}
+
+.sort-button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: inherit;
+  margin: 0;
+  padding: 0;
+  text-transform: inherit;
+}
+
+.sort-button:hover {
+  color: #2563eb;
+}
+
+.table-input {
+  min-width: 110px;
+  padding: 7px 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.small-button {
+  margin-top: 0;
+  padding: 8px 10px;
+}
+
+.danger-button {
+  background: #dc2626;
+}
+
+.notice {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  border-radius: 10px;
+  color: #166534;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+}
+
+.alert {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  color: #991b1b;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+}

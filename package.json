@@ -1,0 +1,28 @@
+{
+  "name": "expense-reports-vercel",
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@types/pg": "^8.20.0",
+    "exceljs": "latest",
+    "next": "latest",
+    "pdf-lib": "latest",
+    "pg": "^8.20.0",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}
