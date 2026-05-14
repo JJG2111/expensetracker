@@ -8,8 +8,12 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   await requireAuth();
+  const wantsJson = request.headers.get("accept")?.includes("application/json");
 
   if (!hasDatabaseUrl()) {
+    if (wantsJson) {
+      return Response.json({ ok: false }, { status: 503 });
+    }
     redirect("/");
   }
 
@@ -22,9 +26,15 @@ export async function POST(request: Request) {
   const partyName = String(form.get("partyName") ?? "").trim();
 
   if (!companyCode || !expenseDate || !productName || !partyName || Number.isNaN(qty) || Number.isNaN(commission)) {
-    redirect("/?error=Invalid%20expense");
+    if (wantsJson) {
+      return Response.json({ ok: false }, { status: 400 });
+    }
+    redirect("/?error=Invalid%20earning");
   }
 
-  await createExpense({ companyCode, expenseDate, productName, qty, commission, partyName });
+  const expense = await createExpense({ companyCode, expenseDate, productName, qty, commission, partyName });
+  if (wantsJson) {
+    return Response.json({ ok: true, expense });
+  }
   redirect("/");
 }

@@ -6,18 +6,23 @@ export default async function LoginPage({
   const params = await searchParams;
 
   return (
-    <section className="card" style={{ maxWidth: 460 }}>
-      <h2>Admin Login</h2>
-      {params.error && <div className="alert">Invalid username or password.</div>}
-      <form method="post" action="/api/login">
-        <label>Username</label>
-        <input name="username" autoComplete="username" required />
+    <div className="login-shell">
+      <section className="card login-card p-4">
+        <h2 className="h3 fw-bold mb-2">Welcome Back</h2>
+        <p className="text-secondary mb-4">Sign in to manage earnings, exports, and analytics.</p>
+        {params.error && <div className="alert alert-danger">Invalid username or password.</div>}
+        <form method="post" action="/api/login">
+          <label className="form-label fw-semibold">Username</label>
+          <input className="form-control mb-3" name="username" autoComplete="username" placeholder="admin" required />
 
-        <label>Password</label>
-        <input name="password" type="password" autoComplete="current-password" required />
+          <label className="form-label fw-semibold">Password</label>
+          <input className="form-control mb-3" name="password" type="password" autoComplete="current-password" placeholder="Enter password" required />
 
-        <button type="submit">Login</button>
-      </form>
-    </section>
+          <button type="submit" className="btn btn-primary w-100">
+            Login
+          </button>
+        </form>
+      </section>
+    </div>
   );
 }

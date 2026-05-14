@@ -12,12 +12,15 @@
   },
   "dependencies": {
     "@types/pg": "^8.20.0",
+    "bootstrap": "^5.3.8",
     "exceljs": "latest",
+    "html-to-image": "^1.11.13",
     "next": "latest",
     "pdf-lib": "latest",
     "pg": "^8.20.0",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@types/node": "latest",

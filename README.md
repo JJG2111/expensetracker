@@ -1,6 +1,6 @@
-# Expense Reports Vercel App
+# Earnings Reports Vercel App
 
-This is a separate Vercel-ready version of the local Python expense app. It does not modify or depend on the existing Python files.
+This is a separate Vercel-ready version of the local Python earnings app. It does not modify or depend on the existing Python files.
 
 ## Stack
 

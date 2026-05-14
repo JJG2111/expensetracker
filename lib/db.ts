@@ -11,6 +11,14 @@ export type Expense = {
   created_at: string;
 };
 
+export type SuggestionField = "product" | "party";
+export type AnalyticsChartType = "bar" | "pie" | "histogram" | "line";
+export type PinnedChart = {
+  chart: AnalyticsChartType;
+  year: string;
+  months: string[];
+};
+
 let schemaReady = false;
 
 declare global {
@@ -33,6 +41,59 @@ function pool() {
 
 async function query<T extends QueryResultRow>(text: string, params: unknown[] = []) {
   return pool().query<T>(text, params);
+}
+
+function suggestionColumn(field: SuggestionField) {
+  return field === "product" ? "product_name" : "party_name";
+}
+
+async function canonicalExpenseName(field: SuggestionField, value: string) {
+  await ensureSchema();
+  const trimmed = value.trim();
+  if (!trimmed) return trimmed;
+
+  const column = suggestionColumn(field);
+  const result = await query<{ value: string }>(
+    `
+    SELECT ${column} AS value
+    FROM expenses
+    WHERE LOWER(${column}) = LOWER($1)
+    ORDER BY created_at DESC
+    LIMIT 1
+  `,
+    [trimmed]
+  );
+
+  return result.rows[0]?.value ?? trimmed;
+}
+
+export async function searchSuggestions(field: SuggestionField, search: string) {
+  await ensureSchema();
+  const trimmed = search.trim();
+  if (trimmed.length < 1) return [];
+
+  const column = suggestionColumn(field);
+  const result = await query<{ value: string }>(
+    `
+    SELECT value
+    FROM (
+      SELECT DISTINCT ON (LOWER(${column}))
+        ${column} AS value,
+        LOWER(${column}) AS normalized,
+        created_at
+      FROM expenses
+      WHERE ${column} ILIKE $1
+      ORDER BY LOWER(${column}), created_at DESC
+    ) matches
+    ORDER BY
+      CASE WHEN value ILIKE $2 THEN 0 ELSE 1 END,
+      value
+    LIMIT 8
+  `,
+    [`%${trimmed}%`, `${trimmed}%`]
+  );
+
+  return result.rows.map((row) => row.value);
 }
 
 export async function ensureSchema() {
@@ -63,6 +124,13 @@ export async function ensureSchema() {
     )
   `);
   await query(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value JSONB NOT NULL,
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    )
+  `);
+  await query(`
     DO $$
     BEGIN
       IF EXISTS (
@@ -79,6 +147,25 @@ export async function ensureSchema() {
   `);
 
   schemaReady = true;
+}
+
+export async function getPinnedChart() {
+  await ensureSchema();
+  const result = await query<{ value: PinnedChart }>("SELECT value FROM app_settings WHERE key = 'pinned_chart' LIMIT 1");
+  return result.rows[0]?.value ?? null;
+}
+
+export async function savePinnedChart(input: PinnedChart) {
+  await ensureSchema();
+  await query(
+    `
+    INSERT INTO app_settings (key, value, updated_at)
+    VALUES ('pinned_chart', $1::jsonb, NOW())
+    ON CONFLICT (key)
+    DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+  `,
+    [JSON.stringify(input)]
+  );
 }
 
 export async function listExpenses() {
@@ -135,13 +222,25 @@ export async function createExpense(input: {
   partyName: string;
 }) {
   await ensureSchema();
-  await query(
+  const productName = await canonicalExpenseName("product", input.productName);
+  const partyName = await canonicalExpenseName("party", input.partyName);
+  const result = await query<Expense>(
     `
     INSERT INTO expenses (company_code, expense_date, product_name, qty, commission, party_name)
     VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING
+      id,
+      company_code,
+      expense_date::text,
+      product_name,
+      qty::float8 AS qty,
+      commission::float8 AS commission,
+      party_name,
+      created_at::text
   `,
-    [input.companyCode, input.expenseDate, input.productName, input.qty, input.commission, input.partyName]
+    [input.companyCode, input.expenseDate, productName, input.qty, input.commission, partyName]
   );
+  return result.rows[0] ?? null;
 }
 
 export async function updateExpense(
@@ -156,7 +255,9 @@ export async function updateExpense(
   }
 ) {
   await ensureSchema();
-  await query(
+  const productName = await canonicalExpenseName("product", input.productName);
+  const partyName = await canonicalExpenseName("party", input.partyName);
+  const result = await query<Expense>(
     `
     UPDATE expenses
     SET
@@ -167,9 +268,19 @@ export async function updateExpense(
       commission = $6,
       party_name = $7
     WHERE id = $1
+    RETURNING
+      id,
+      company_code,
+      expense_date::text,
+      product_name,
+      qty::float8 AS qty,
+      commission::float8 AS commission,
+      party_name,
+      created_at::text
   `,
-    [id, input.companyCode, input.expenseDate, input.productName, input.qty, input.commission, input.partyName]
+    [id, input.companyCode, input.expenseDate, productName, input.qty, input.commission, partyName]
   );
+  return result.rows[0] ?? null;
 }
 
 export async function deleteExpense(id: number) {
@@ -247,6 +358,32 @@ export async function analyticsTotal(year: string, months: string[]) {
     [year, selectedMonths]
   );
   return result.rows[0] ?? { revenue: 0, expense_count: 0 };
+}
+
+export async function partyMonthlyOrders(year: string, months: string[]) {
+  await ensureSchema();
+  const selectedMonths = (months.length ? months : ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]).filter((month) =>
+    /^\d{2}$/.test(month)
+  );
+  if (!selectedMonths.length) return [];
+
+  const result = await query<{ month: string; party: string; order_value: number }>(
+    `
+    SELECT
+      LPAD(EXTRACT(MONTH FROM expense_date)::text, 2, '0') AS month,
+      party_name AS party,
+      SUM(qty * commission)::float8 AS order_value
+    FROM expenses
+    WHERE EXTRACT(YEAR FROM expense_date)::text = $1
+      AND LPAD(EXTRACT(MONTH FROM expense_date)::text, 2, '0') = ANY($2::text[])
+    GROUP BY month, party_name
+    HAVING SUM(qty * commission) > 0
+    ORDER BY month, order_value DESC, party
+  `,
+    [year, selectedMonths]
+  );
+
+  return result.rows;
 }
 
 export async function saveReportHistory(filename: string, contentType: string, bytes: Buffer) {
